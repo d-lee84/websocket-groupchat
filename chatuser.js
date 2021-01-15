@@ -1,3 +1,8 @@
+"use strict";
+
+const axios = require("axios");
+const JOKES_API_BASE_URL = "https://icanhazdadjoke.com/"
+
 /** Functionality related to chatting. */
 
 // Room is an abstraction of a chat channel
@@ -60,6 +65,21 @@ class ChatUser {
     });
   }
 
+  /** Handle a joke: send to the user only a joke */
+
+  async handleJoke() {
+    let resp = await axios.get(JOKES_API_BASE_URL, {headers: {Accept: "text/plain"}});
+    let joke = resp.data;
+    
+    let jokeObj = {
+      type: "chat",
+      text: joke,
+      name: "Jokester Bot"
+    }
+
+    this.send(JSON.stringify(jokeObj));
+  }
+
   /** Handle messages from client:
    *
    * @param jsonData {string} raw message data
@@ -70,13 +90,19 @@ class ChatUser {
    * </code>
    */
 
-  handleMessage(jsonData) {
+  async handleMessage(jsonData) {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
-    else if (msg.type === "chat") this.handleChat(msg.text);
+    else if (msg.type === "chat") {
+      if (msg.text === "/joke") {
+        await this.handleJoke();
+      } else { this.handleChat(msg.text); }
+    }
     else throw new Error(`bad message: ${msg.type}`);
   }
+
+
 
   /** Connection was closed: leave room, announce exit to others. */
 
