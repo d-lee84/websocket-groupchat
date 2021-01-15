@@ -65,7 +65,7 @@ class ChatUser {
     });
   }
 
-  /** Handle a joke: send to the user only a joke */
+  /** Handle a joke: send a joke to only this user */
 
   async handleJoke() {
     let resp = await axios.get(JOKES_API_BASE_URL, {headers: {Accept: "text/plain"}});
@@ -78,6 +78,22 @@ class ChatUser {
     }
 
     this.send(JSON.stringify(jokeObj));
+  }
+
+  /** Handle a request for members in current room: sends list of room members to only this user */
+
+  handleMembers() {
+    let members = Array.from(this.room.members);
+    members = members.map(m => m.name);
+    let membersNames = members.join(', ');
+    
+    let membersObj = {
+      type: "chat",
+      text: membersNames,
+      name: "In room"
+    }
+
+    this.send(JSON.stringify(membersObj));
   }
 
   /** Handle messages from client:
@@ -94,11 +110,10 @@ class ChatUser {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
-    else if (msg.type === "chat") {
-      if (msg.text === "/joke") {
-        await this.handleJoke();
-      } else { this.handleChat(msg.text); }
-    }
+    else if (msg.type === "chat") this.handleChat(msg.text);
+    else if (msg.type === "joke") this.handleJoke();
+    else if (msg.type === "members") this.handleMembers();
+
     else throw new Error(`bad message: ${msg.type}`);
   }
 
