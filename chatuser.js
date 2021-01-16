@@ -96,6 +96,34 @@ class ChatUser {
     this.send(JSON.stringify(membersObj));
   }
 
+  /** Handle a request to send private message to another user in the room: 
+   *  sends list of room members to only this user 
+   * 
+   * @param msg {object} contains information about the message
+   *  
+   * @example<code>
+   * - {type: "priv", to: "to_username", text: "message to send"} : msg
+   * </code>
+   * */
+
+  handlePrivate(msg) {
+    let privateMessageObj = {
+      type: "chat",
+      text: msg.text,
+      name: "PRIVATE FROM " + this.name
+    }
+
+    let user = this.room.getUser(msg.to);
+
+    if (user) {
+      user.send(JSON.stringify(privateMessageObj));
+    } else {
+      privateMessageObj.text = `No user found with username: ${msg.to}`;
+      privateMessageObj.name = "ERROR"
+      this.send(JSON.stringify(privateMessageObj));
+    }
+  }
+
   /** Handle messages from client:
    *
    * @param jsonData {string} raw message data
@@ -106,13 +134,14 @@ class ChatUser {
    * </code>
    */
 
-  async handleMessage(jsonData) {
+  handleMessage(jsonData) {
     let msg = JSON.parse(jsonData);
 
     if (msg.type === "join") this.handleJoin(msg.name);
     else if (msg.type === "chat") this.handleChat(msg.text);
     else if (msg.type === "joke") this.handleJoke();
     else if (msg.type === "members") this.handleMembers();
+    else if (msg.type === "priv") this.handlePrivate(msg);
 
     else throw new Error(`bad message: ${msg.type}`);
   }

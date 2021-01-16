@@ -37,6 +37,23 @@ class Room {
     this.members = new Set();
   }
 
+  /** Search the members in the room by name,
+   *  return the ChatUser instance
+   *  
+   * @param name {string} name of the ChatUser instance to get
+   */
+
+  getUser(name) {
+    console.log(this.members);
+    for(let user of this.members) {
+      if (user.name === name) {
+        return user;
+      }
+    }
+
+    return null;
+  }
+
   /** Handle member joining a room.
    *
    * @param member {ChatUser} joining member

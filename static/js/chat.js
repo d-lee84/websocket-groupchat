@@ -56,11 +56,19 @@ ws.onclose = function (evt) {
 
 $("form").submit(function (evt) {
   evt.preventDefault();
-  let chatText = $("#m").val();
-  let data = { type: "chat", text: chatText };
+  let text = $("#m").val();
+  let chatTexts = text.split(" ");
 
-  if(chatText === '/joke') data.type = "joke"
-  if(chatText === '/members') data.type = "members"
+  let data = { type: "chat", text };
+
+  if(chatTexts[0] === '/joke') data.type = "joke"
+  if(chatTexts[0] === '/members') data.type = "members"
+  if(chatTexts[0] === '/priv') { 
+    chatTexts.shift();
+    data.type = "priv"
+    data.to = chatTexts.shift();
+    data.text = chatTexts.join(" ");
+  }
   
   ws.send(JSON.stringify(data));
 
