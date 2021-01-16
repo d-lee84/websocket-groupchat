@@ -30,6 +30,8 @@ ws.onmessage = function (evt) {
     item = $(`<li><i>${msg.text}</i></li>`);
   } else if (msg.type === "chat") {
     item = $(`<li><b>${msg.name}: </b>${msg.text}</li>`);
+  } else if (msg.type === "alert") {
+    item = $(`<li><b>${msg.text}</b></li>`);
   } else {
     return console.error(`bad message: ${msg}`);
   }
@@ -56,13 +58,21 @@ ws.onclose = function (evt) {
 
 $("form").submit(function (evt) {
   evt.preventDefault();
+
   let text = $("#m").val();
+  if(text === '') return;
+
+  // store in var and destructure data
   let chatTexts = text.split(" ");
 
   let data = { type: "chat", text };
 
   if(chatTexts[0] === '/joke') data.type = "joke"
   if(chatTexts[0] === '/members') data.type = "members"
+  if(chatTexts[0] === '/name') {
+    data.type = "nameChange";
+    data.newName = chatTexts[1];
+  }
   if(chatTexts[0] === '/priv') { 
     chatTexts.shift();
     data.type = "priv"

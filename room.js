@@ -44,14 +44,16 @@ class Room {
    */
 
   getUser(name) {
-    console.log(this.members);
-    for(let user of this.members) {
-      if (user.name === name) {
-        return user;
-      }
-    }
+    // borrow find method and then call on the members set GOOGLE THIS: Array.prototype.slice.call
+    return [].find.call(this.members, user => user.name === name);
+    
+    // for(let user of this.members) {
+    //   if (user.name === name) {
+    //     return user;
+    //   }
+    // }
 
-    return null;
+    // return null;
   }
 
   /** Handle member joining a room.

@@ -68,6 +68,7 @@ class ChatUser {
   /** Handle a joke: send a joke to only this user */
 
   async handleJoke() {
+    // make a helper function to get joke
     let resp = await axios.get(JOKES_API_BASE_URL, {headers: {Accept: "text/plain"}});
     let joke = resp.data;
     
@@ -83,6 +84,7 @@ class ChatUser {
   /** Handle a request for members in current room: sends list of room members to only this user */
 
   handleMembers() {
+    // could spread this, and chain these actions
     let members = Array.from(this.room.members);
     members = members.map(m => m.name);
     let membersNames = members.join(', ');
@@ -124,6 +126,20 @@ class ChatUser {
     }
   }
 
+  /** Handle a user name change: broadcast to room.
+   *
+   * @param newName {string} new user name
+   * */
+
+  handleNameChange(newName) {
+    let prevName = this.name;
+    this.name = newName;
+    this.room.broadcast({
+      type: "alert",
+      text: `${prevName} changed username to ${this.name}.`,
+    });
+  }
+
   /** Handle messages from client:
    *
    * @param jsonData {string} raw message data
@@ -137,13 +153,37 @@ class ChatUser {
   handleMessage(jsonData) {
     let msg = JSON.parse(jsonData);
 
-    if (msg.type === "join") this.handleJoin(msg.name);
-    else if (msg.type === "chat") this.handleChat(msg.text);
-    else if (msg.type === "joke") this.handleJoke();
-    else if (msg.type === "members") this.handleMembers();
-    else if (msg.type === "priv") this.handlePrivate(msg);
+    switch (msg.type) {
+      case "join": 
+        this.handleJoin(msg.name);
+        break;
+      case "chat":
+        this.handleChat(msg.text);
+        break;
+      case "joke":
+        this.handleJoke();
+        break;
+      case "members":
+        this.handleMembers();
+        break;
+      case "priv":
+        this.handlePrivate(msg);
+        break;
+      case "nameChange":
+        this.handleNameChange(msg.newName);
+        break;
+      default:
+        throw new Error(`bad message: ${msg.type}`);
+    }
 
-    else throw new Error(`bad message: ${msg.type}`);
+    // if (msg.type === "join") this.handleJoin(msg.name);
+    // else if (msg.type === "chat") this.handleChat(msg.text);
+    // else if (msg.type === "joke") this.handleJoke();
+    // else if (msg.type === "members") this.handleMembers();
+    // else if (msg.type === "priv") this.handlePrivate(msg);
+    // else if (msg.type === "nameChange") this.handleNameChange(msg.newName);
+
+    // else throw new Error(`bad message: ${msg.type}`);
   }
 
 
